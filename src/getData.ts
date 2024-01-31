@@ -1,9 +1,8 @@
-import { ImageData } from "./types"
+import { ImageData, getDataInterface } from "./types"
 
-export async function getData(numberOfRow: number) {
+export async function getData(params: getDataInterface) {
     const res = await fetch('https://jsonplaceholder.typicode.com/photos')
     const result = await res.json()
     const data = result as ImageData[]
-    console.log(data)
-    return data.slice(0, numberOfRow)
+    return data
 }
