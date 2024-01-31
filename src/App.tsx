@@ -1,44 +1,63 @@
-import { createResource, type Component, Show, For } from 'solid-js';
+import { createResource, type Component, Show, For, createSignal } from 'solid-js';
 
-import logo from './logo.svg';
-import styles from './App.module.css';
 import { getData } from './getData';
-import { ImageData } from './types';
+import { ImageData, getDataInterface } from './types';
 
-const Data = () => {
-  const [ data ] = createResource<ImageData[]>(getData)
-  console.log(data)
+interface DisplayDataProps {
+  numberOfRow: number
+}
+
+const DisplayData = (props: DisplayDataProps) => {
+  const [ inc, setInc ] = createSignal<number>(Math.floor(Math.random() * 50))
+  const [stop, setStop] = createSignal<boolean>(false)
+  const [ data ] = createResource<ImageData[], getDataInterface>({start: () => inc(), end: props.numberOfRow} as getDataInterface, getData) || []
+  const [dataSliced, setDataSliced] = createSignal<ImageData[] | undefined>(data()?.slice(inc(), props.numberOfRow + inc()))
+
+  setInterval(() => {
+    if (stop()) return
+    if (inc() > 5000 - props.numberOfRow)
+      setInc(0)
+    else
+      setInc(Math.floor(Math.random() * 50))
+    const rowData = data()
+    if (rowData)
+      setDataSliced(rowData.slice(inc(), props.numberOfRow + inc()))
+  }, 1000)
+
   return (
-    <Show when={!data.loading} fallback={<>Tu fonctionnes maintenant ?</>}>
-      <For each={data()}>
-        {
-          (data) => (
-            <div style={{ width:"50%", height:"100%", display:"flex", "flex-direction":"row" }}>
-            <div style={{ width:"50%", height:"100%" }}>
-              <img src={data.url} style={{height: "100px", width: "100px"}}/>
-            </div>
-            <div style={{ width:"50%", height:"100%" }}>
-              <h1 style={{ color:"black" }}>{data.title}</h1>
-            </div>
-          </div>
-          )
-        }
-      </For>
-    </Show>
+      <div class="h-1/3 overflow-x-scroll flex flex-row p-10 gap-3">
+        <div>
+          {
+            stop() ?
+            <button class='bg-red-500 rounded-lg p-2' style={{ width: "5%", height: "20%" }} onClick={() => setStop(!stop())}></button>
+            :
+            <button class='bg-green-500 rounded-lg p-2' style={{ width: "5%", height: "20%" }} onClick={() => setStop(!stop())}></button>
+          }
+          <h1>{inc()}</h1>
+        </div>
+        <Show when={!data.loading} fallback={<div class='flex w-full h-full justify-center items-center'>Chargement des données</div>}>
+          <For each={dataSliced()}>
+            {
+              (data) => (
+              <div class='flex flex-row shadow-xl'>
+                <img src={data.url}/>
+                <div class='flex justify-center items-center p-7' style={{ width:"600px", "max-width":"600px" }}>
+                  <p class=' text-center'>{data.title}</p>
+                </div>
+              </div>
+              )
+            }
+          </For>
+        </Show>
+      </div>
   )
 }
 
 const App: Component = () => {
   return (
-    <div style={{ width:"100vw", height:"100vh" }}>
-      <div style={{ height:"50%", width:"100%", display:"flex", "flex-direction":"row" }}>
-        <Data/>
-        <Data/>
-      </div>
-      <div style={{ height:"50%", width:"100%", display:"flex", "flex-direction":"row" }}>
-        <Data/>
-        <Data/>
-      </div>
+    <div class='h-screen flex flex-col justify-center gap-6'>
+        <DisplayData numberOfRow={10}/>
+        <DisplayData numberOfRow={10}/>
     </div>
   );
 };
