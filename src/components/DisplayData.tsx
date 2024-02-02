@@ -1,6 +1,6 @@
 import { createResource, Show, For, createSignal } from 'solid-js';
 
-import { getData } from '../getData';
+import { getData } from '../libs/getData';
 import { ImageData, getDataInterface } from '../types';
 
 interface DisplayDataProps {
